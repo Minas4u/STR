@@ -205,7 +205,7 @@
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Loading team data...
+                Loading team data from Google Sheet...
             </div>
             <div id="error-message" class="hidden"></div>
         </main>
@@ -215,57 +215,11 @@
 let teamData = null; 
 let deferredInstallPrompt = null;
 
-// --- DATA MANAGEMENT ---
-// In a real application, you would fetch this data from your Google Sheet Web App.
-// I've included this mock data so the app is fully functional for demonstration.
-// To connect to your Google Sheet, replace the logic in `fetchTeamData` with a
-// real fetch() call to your Google Apps Script URL.
-const mockTeamData = {
-    uiText: {
-        mainTitleProject: "Team",
-        mainTitleMarathon: "Companion",
-        appSubtitle: "Your daily guide to drills, mobility, and strength.",
-        loginButtonText: "Let's Go",
-        navButtonDrills: "Running Drills",
-        navButtonMobility: "Mobility",
-        navButtonStrength: "Strength",
-        navButtonUpdates: "Updates",
-    },
-    updates: [
-        {
-            title: "Welcome to the new season!",
-            content: ["Great to have everyone back. Let's focus on building a strong base.", "Check the new drill videos added this week."]
-        },
-        {
-            title: "Team Meetup: This Saturday",
-            content: ["This Saturday at 9 AM at the track for a group session. We'll go over the new drills together."]
-        }
-    ],
-    drills: [
-        { name: "A-Skips", description: "Focus on driving the knee up and maintaining a tall posture. Keep the foot dorsiflexed (toes pulled up).", videoUrl: "#", reps: "2 x 20m" },
-        { name: "B-Skips", description: "Extend the leg forward from the peak of an A-Skip, then pull it back down quickly underneath the hip.", videoUrl: "#", reps: "2 x 20m" },
-        { name: "High Knees", description: "Drive your knees towards your chest, focusing on a quick turnover and minimal ground contact time.", videoUrl: "#", reps: "2 x 30s" },
-        { name: "Butt Kicks", description: "Bring your heel directly to your glute, focusing on a quick leg cycle. Avoid leaning forward.", videoUrl: "#", reps: "2 x 30s" }
-    ],
-    mobility: [
-        { name: "Leg Swings (Forward)", description: "Swing one leg forward and backward, keeping your torso upright. Increase the range of motion gradually.", videoUrl: "#", duration: "10-12 reps / leg" },
-        { name: "Leg Swings (Sideways)", description: "Swing one leg from side to side in front of your body. Keep your hips stable.", videoUrl: "#", duration: "10-12 reps / leg" },
-        { name: "Hip Circles", description: "Stand on one leg and make large, controlled circles with the other knee, both clockwise and counter-clockwise.", videoUrl: "#", duration: "10 circles each way / leg" },
-        { name: "Cat-Cow Stretch", description: "On all fours, arch your back up towards the ceiling (cat) and then let your belly sink towards the floor (cow).", videoUrl: "#", duration: "10-12 reps" }
-    ],
-    strength: [
-        { name: "Bodyweight Squats", description: "Lower your hips as if sitting in a chair, keeping your chest up and back straight. Aim for thighs parallel to the ground.", videoUrl: "#", sets: 3, reps: 15 },
-        { name: "Lunges", description: "Step forward with one leg and lower your hips until both knees are bent at a 90-degree angle. Push back to the start.", videoUrl: "#", sets: 3, reps: "10 / leg" },
-        { name: "Plank", description: "Hold a straight line from your head to your heels, engaging your core and glutes. Avoid letting your hips sag.", videoUrl: "#", sets: 3, duration: "45s" },
-        { name: "Glute Bridges", description: "Lie on your back with knees bent, and lift your hips off the floor until your body forms a straight line from shoulders to knees. Squeeze your glutes at the top.", videoUrl: "#", sets: 3, reps: 15 }
-    ]
-};
-
 // This maps a User ID to a specific Google Apps Script URL.
-// IMPORTANT: Replace the URL with your actual published Google Apps Script URL.
+// I have added the URL you provided.
 const userSpecificDataSources = {
-    "ADMIN": "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec", 
-    "TEAM1": "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec",
+    "ADMIN": "https://script.google.com/macros/s/AKfycbw3fpGf2W8ANwIaioiZdXZBeEjw3vr1g3XSLf3KXPR3wKLDPYSDpRbFGjJ-BDZLYd6rKg/exec", 
+    "TEAM1": "https://script.google.com/macros/s/AKfycbw3fpGf2W8ANwIaioiZdXZBeEjw3vr1g3XSLf3KXPR3wKLDPYSDpRbFGjJ-BDZLYd6rKg/exec",
 };
 
 
@@ -301,43 +255,32 @@ function updateStaticUIText() {
     document.getElementById('nav-updates').textContent = uiText.navButtonUpdates || "Updates";
 }
 
-// Fetches data. Currently uses mock data.
+// Fetches data from the live Google Sheet Web App.
 async function fetchTeamData(webAppUrl) {
-    // To use a real Google Sheet, replace this with a fetch call.
-    // For example:
-    /*
     try {
         const response = await fetch(webAppUrl);
-        if (!response.ok) throw new Error('Network response was not ok.');
+        if (!response.ok) {
+            throw new Error(`Network response was not ok (status: ${response.status})`);
+        }
         const data = await response.json();
-        if (data.error) throw new Error(data.error);
+        if (data.error) {
+            throw new Error(`Error from Apps Script: ${data.error}`);
+        }
         
-        // Add data validation here
+        // Basic data validation
+        if (!data || !data.drills || !data.mobility || !data.strength) {
+            throw new Error("Fetched data is missing required sections (drills, mobility, or strength).");
+        }
         
         teamData = data;
+        updateStaticUIText();
         return true;
     } catch (error) {
         console.error('Failed to fetch team data:', error);
-        loginErrorMessageDiv.textContent = `Error: ${error.message}`;
+        loginErrorMessageDiv.textContent = `Error: ${error.message}. Please check the console for more details.`;
+        loginErrorMessageDiv.classList.remove('hidden');
         return false;
     }
-    */
-
-    // Using mock data for demonstration purposes
-    return new Promise(resolve => {
-        setTimeout(() => {
-            // Basic validation of the mock data structure
-            if (!mockTeamData || !mockTeamData.drills || !mockTeamData.mobility || !mockTeamData.strength) {
-                 loginErrorMessageDiv.textContent = `Error: Data is malformed.`;
-                 loginErrorMessageDiv.classList.remove('hidden');
-                 resolve(false);
-            } else {
-                teamData = mockTeamData;
-                updateStaticUIText();
-                resolve(true);
-            }
-        }, 1000); // Simulate network delay
-    });
 }
 
 // Handles the login process
@@ -348,10 +291,9 @@ async function handleLogin() {
     loginErrorMessageDiv.classList.add('hidden');
     loginLoadingMessageDiv.classList.remove('hidden');
 
-    // This check is for the real implementation. For the demo, we always use mock data.
     const webAppUrl = userSpecificDataSources[userId];
     if (userId === "" || !webAppUrl) {
-        loginErrorMessageDiv.textContent = "Invalid User ID. Try again.";
+        loginErrorMessageDiv.textContent = "Invalid User ID. Please try again.";
         loginErrorMessageDiv.classList.remove('hidden');
         loginLoadingMessageDiv.classList.add('hidden');
         return;
