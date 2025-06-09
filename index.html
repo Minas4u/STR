@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Running Team Companion</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* General Body and Container Styles */
+        body {
+            font-family: 'Ubuntu', sans-serif;
+            background-color: #f0f4f8; 
+            color: #1e293b; 
+        }
+        .main-container {
+            background-color: #ffffff; 
+            border-radius: 0.75rem; 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); 
+            width: 100%;
+            max-width: 64rem; /* 1024px */
+            padding: 1.5rem; 
+            margin-left: auto;
+            margin-right: auto;
+        }
+        @media (min-width: 640px) { 
+            .main-container {
+                padding: 2rem; 
+            }
+        }
+
+        /* App Header and Logo Styles */
+        .app-logo {
+            font-family: 'Ubuntu', sans-serif;
+            font-weight: 700;
+            font-size: 3.75rem;
+            line-height: 1;
+            text-align: center;
+            padding: 0.5rem 0.75rem;
+            display: inline-block;
+            border-top: 3px solid #10b981;    
+            border-right: 3px solid #0ea5e9; 
+            border-bottom: 3px solid #0ea5e9; 
+            border-left: 3px solid #10b981;  
+            margin-bottom: 0.75rem; 
+        }
+        @media (min-width: 640px) {
+            .app-logo {
+                font-size: 4.5rem; 
+                padding: 0.75rem 1rem; 
+            }
+        }
+        .app-logo .logo-run { color: #0ea5e9; }
+        .app-logo .logo-sup { color: #10b981; }
+
+        /* Main Navigation Button Styles */
+        .nav-button {
+            padding: 0.6rem 1.1rem; 
+            border-radius: 0.375rem; 
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            font-weight: 600; 
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); 
+        }
+        .nav-button:hover:not(.active) { 
+            background-color: #f3f4f6; 
+            color: #1f2937; 
+        }
+        .nav-button.active-drills { background-color: #059669; color: white; } 
+        .nav-button.active-drills:hover { background-color: #047857; } 
+
+        .nav-button.active-mobility { background-color: #0ea5e9; color: white; } 
+        .nav-button.active-mobility:hover { background-color: #0284c7; } 
+        
+        .nav-button.active-strength { background-color: #f59e0b; color: white; } 
+        .nav-button.active-strength:hover { background-color: #d97706; } 
+
+        .nav-button.active-updates { background-color: #6366f1; color: white; } 
+        .nav-button.active-updates:hover { background-color: #4f46e5; } 
+        
+        /* Content Card Styles */
+        .content-card {
+            background-color: #fafaf9; 
+            padding: 1.25rem; 
+            border-radius: 0.5rem; 
+            border-left-width: 4px;
+        }
+        .updates-card { border-left-color: #6366f1; }
+        .drills-card { border-left-color: #059669; }
+        .mobility-card { border-left-color: #0ea5e9; }
+        .strength-card { border-left-color: #f59e0b; }
+
+        /* Exercise Card Styles */
+        .exercise-card {
+            background-color: #fff;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .exercise-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+        }
+        .exercise-card h3 {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .exercise-card .details {
+            font-weight: 500;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            display: inline-block;
+        }
+        .details-drills { background-color: #dcfce7; color: #166534; }
+        .details-mobility { background-color: #e0f2fe; color: #075985; }
+        .details-strength { background-color: #fef3c7; color: #92400e; }
+        .video-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #0ea5e9;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .video-link:hover {
+            color: #0284c7;
+        }
+
+        /* Login and Utility Styles */
+        #userIdInput { border-width: 2px; border-color: #0ea5e9; }
+        #userIdInput:focus {
+            outline: 2px solid transparent; outline-offset: 2px; border-color: #0284c7; 
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.3); 
+        }
+        label[for="userIdInput"] { border-left-width: 4px; border-color: #0ea5e9; padding-left: 0.5rem; }
+        #loginButton { border-radius: 9999px; }
+        #installPwaButton { background-color: #0ea5e9; color: white; font-weight: 600; border: 2px solid #10b981; }
+        #installPwaButton:hover { background-color: #0284c7; border-color: #059669; }
+        #loading-message, #error-message, #login-error-message { text-align: center; padding: 2rem; font-size: 1.125rem; font-weight: 500; }
+        #loading-message { color: #0284c7; } 
+        #error-message, #login-error-message { color: #dc2626; background-color: #fee2e2; border: 1px solid #f87171; border-radius: 0.5rem; } 
+    </style>
+</head>
+<body class="min-h-screen p-4 py-8">
+
+    <!-- Login Container -->
+    <div id="login-container" class="main-container">
+        <header class="mb-8 text-center">
+            <div class="app-logo">
+                <span class="logo-run">RUN</span><span class="logo-sup">APP</span>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-stone-800 mt-2">
+                <span id="mainTitleProject" class="text-sky-600">Team</span> <span id="mainTitleMarathon" class="text-emerald-600">Companion</span>
+            </h1>
+        </header>
+        <div class="space-y-4">
+            <button id="installPwaButton" class="w-full flex justify-center py-2 px-4 border-transparent rounded-md shadow-sm text-sm font-medium hidden mb-4">
+                Install App
+            </button>
+            <div>
+                <label for="userIdInput" class="block text-sm font-medium text-stone-700 mb-1">User ID:</label>
+                <input type="text" id="userIdInput" name="userIdInput" class="mt-1 block w-full px-3 py-2 rounded-md shadow-sm sm:text-sm" placeholder="Enter your User ID">
+            </div>
+            <button id="loginButton" class="w-full flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">
+                Let's Go
+            </button>
+            <div id="login-loading-message" class="hidden text-center text-sky-600">
+                <svg class="animate-spin h-5 w-5 text-sky-600 mx-auto mb-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Loading...
+            </div>
+            <div id="login-error-message" class="hidden"></div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="main-app-wrapper" class="main-container hidden">
+        <header class="mb-8 text-center">
+             <div class="app-logo">
+                <span class="logo-run">RUN</span><span class="logo-sup">APP</span>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-stone-800 mt-2">
+                <span id="appHeaderTitleProject" class="text-sky-600">Team</span> <span id="appHeaderTitleMarathon" class="text-emerald-600">Companion</span>
+            </h1>
+            <p id="appSubtitle" class="text-stone-600 mt-2 text-lg">
+                Your daily guide to drills, mobility, and strength.
+            </p>
+        </header>
+
+        <nav class="mb-8 flex flex-wrap justify-center gap-2 sm:gap-4 pb-4 border-b-2 border-slate-200">
+            <button id="nav-drills" class="nav-button">Drills</button>
+            <button id="nav-mobility" class="nav-button">Mobility</button>
+            <button id="nav-strength" class="nav-button">Strength</button>
+            <button id="nav-updates" class="nav-button">Updates</button>
+        </nav>
+
+        <main id="app-content">
+            <div id="loading-message">
+                <svg class="animate-spin h-8 w-8 text-sky-600 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Loading team data...
+            </div>
+            <div id="error-message" class="hidden"></div>
+        </main>
+    </div>
+
+<script>
+let teamData = null; 
+let deferredInstallPrompt = null;
+
+// --- DATA MANAGEMENT ---
+// In a real application, you would fetch this data from your Google Sheet Web App.
+// I've included this mock data so the app is fully functional for demonstration.
+// To connect to your Google Sheet, replace the logic in `fetchTeamData` with a
+// real fetch() call to your Google Apps Script URL.
+const mockTeamData = {
+    uiText: {
+        mainTitleProject: "Team",
+        mainTitleMarathon: "Companion",
+        appSubtitle: "Your daily guide to drills, mobility, and strength.",
+        loginButtonText: "Let's Go",
+        navButtonDrills: "Running Drills",
+        navButtonMobility: "Mobility",
+        navButtonStrength: "Strength",
+        navButtonUpdates: "Updates",
+    },
+    updates: [
+        {
+            title: "Welcome to the new season!",
+            content: ["Great to have everyone back. Let's focus on building a strong base.", "Check the new drill videos added this week."]
+        },
+        {
+            title: "Team Meetup: This Saturday",
+            content: ["This Saturday at 9 AM at the track for a group session. We'll go over the new drills together."]
+        }
+    ],
+    drills: [
+        { name: "A-Skips", description: "Focus on driving the knee up and maintaining a tall posture. Keep the foot dorsiflexed (toes pulled up).", videoUrl: "#", reps: "2 x 20m" },
+        { name: "B-Skips", description: "Extend the leg forward from the peak of an A-Skip, then pull it back down quickly underneath the hip.", videoUrl: "#", reps: "2 x 20m" },
+        { name: "High Knees", description: "Drive your knees towards your chest, focusing on a quick turnover and minimal ground contact time.", videoUrl: "#", reps: "2 x 30s" },
+        { name: "Butt Kicks", description: "Bring your heel directly to your glute, focusing on a quick leg cycle. Avoid leaning forward.", videoUrl: "#", reps: "2 x 30s" }
+    ],
+    mobility: [
+        { name: "Leg Swings (Forward)", description: "Swing one leg forward and backward, keeping your torso upright. Increase the range of motion gradually.", videoUrl: "#", duration: "10-12 reps / leg" },
+        { name: "Leg Swings (Sideways)", description: "Swing one leg from side to side in front of your body. Keep your hips stable.", videoUrl: "#", duration: "10-12 reps / leg" },
+        { name: "Hip Circles", description: "Stand on one leg and make large, controlled circles with the other knee, both clockwise and counter-clockwise.", videoUrl: "#", duration: "10 circles each way / leg" },
+        { name: "Cat-Cow Stretch", description: "On all fours, arch your back up towards the ceiling (cat) and then let your belly sink towards the floor (cow).", videoUrl: "#", duration: "10-12 reps" }
+    ],
+    strength: [
+        { name: "Bodyweight Squats", description: "Lower your hips as if sitting in a chair, keeping your chest up and back straight. Aim for thighs parallel to the ground.", videoUrl: "#", sets: 3, reps: 15 },
+        { name: "Lunges", description: "Step forward with one leg and lower your hips until both knees are bent at a 90-degree angle. Push back to the start.", videoUrl: "#", sets: 3, reps: "10 / leg" },
+        { name: "Plank", description: "Hold a straight line from your head to your heels, engaging your core and glutes. Avoid letting your hips sag.", videoUrl: "#", sets: 3, duration: "45s" },
+        { name: "Glute Bridges", description: "Lie on your back with knees bent, and lift your hips off the floor until your body forms a straight line from shoulders to knees. Squeeze your glutes at the top.", videoUrl: "#", sets: 3, reps: 15 }
+    ]
+};
+
+// This maps a User ID to a specific Google Apps Script URL.
+// IMPORTANT: Replace the URL with your actual published Google Apps Script URL.
+const userSpecificDataSources = {
+    "ADMIN": "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec", 
+    "TEAM1": "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec",
+};
+
+
+// --- DOM ELEMENTS ---
+const loginContainer = document.getElementById('login-container');
+const mainAppWrapper = document.getElementById('main-app-wrapper');
+const appContent = document.getElementById('app-content');
+const loadingMessageDiv = document.getElementById('loading-message');
+const errorMessageDiv = document.getElementById('error-message');
+const loginErrorMessageDiv = document.getElementById('login-error-message');
+const loginLoadingMessageDiv = document.getElementById('login-loading-message');
+const installPwaButton = document.getElementById('installPwaButton');
+
+
+// --- CORE APP LOGIC ---
+
+// Updates button text and titles from the data source.
+function updateStaticUIText() {
+    if (!teamData || !teamData.uiText) {
+        console.warn("teamData.uiText not available. Using default HTML text.");
+        return;
+    }
+    const uiText = teamData.uiText;
+    document.getElementById('loginButton').textContent = uiText.loginButtonText || "Let's Go";
+    document.getElementById('mainTitleProject').textContent = uiText.mainTitleProject || "Team";
+    document.getElementById('mainTitleMarathon').textContent = uiText.mainTitleMarathon || "Companion";
+    document.getElementById('appHeaderTitleProject').textContent = uiText.mainTitleProject || "Team";
+    document.getElementById('appHeaderTitleMarathon').textContent = uiText.mainTitleMarathon || "Companion";
+    document.getElementById('appSubtitle').textContent = uiText.appSubtitle || "Your guide to drills, mobility, and strength.";
+    document.getElementById('nav-drills').textContent = uiText.navButtonDrills || "Drills";
+    document.getElementById('nav-mobility').textContent = uiText.navButtonMobility || "Mobility";
+    document.getElementById('nav-strength').textContent = uiText.navButtonStrength || "Strength";
+    document.getElementById('nav-updates').textContent = uiText.navButtonUpdates || "Updates";
+}
+
+// Fetches data. Currently uses mock data.
+async function fetchTeamData(webAppUrl) {
+    // To use a real Google Sheet, replace this with a fetch call.
+    // For example:
+    /*
+    try {
+        const response = await fetch(webAppUrl);
+        if (!response.ok) throw new Error('Network response was not ok.');
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+        
+        // Add data validation here
+        
+        teamData = data;
+        return true;
+    } catch (error) {
+        console.error('Failed to fetch team data:', error);
+        loginErrorMessageDiv.textContent = `Error: ${error.message}`;
+        return false;
+    }
+    */
+
+    // Using mock data for demonstration purposes
+    return new Promise(resolve => {
+        setTimeout(() => {
+            // Basic validation of the mock data structure
+            if (!mockTeamData || !mockTeamData.drills || !mockTeamData.mobility || !mockTeamData.strength) {
+                 loginErrorMessageDiv.textContent = `Error: Data is malformed.`;
+                 loginErrorMessageDiv.classList.remove('hidden');
+                 resolve(false);
+            } else {
+                teamData = mockTeamData;
+                updateStaticUIText();
+                resolve(true);
+            }
+        }, 1000); // Simulate network delay
+    });
+}
+
+// Handles the login process
+async function handleLogin() {
+    const userIdInput = document.getElementById('userIdInput');
+    const userId = userIdInput.value.trim().toUpperCase();
+    
+    loginErrorMessageDiv.classList.add('hidden');
+    loginLoadingMessageDiv.classList.remove('hidden');
+
+    // This check is for the real implementation. For the demo, we always use mock data.
+    const webAppUrl = userSpecificDataSources[userId];
+    if (userId === "" || !webAppUrl) {
+        loginErrorMessageDiv.textContent = "Invalid User ID. Try again.";
+        loginErrorMessageDiv.classList.remove('hidden');
+        loginLoadingMessageDiv.classList.add('hidden');
+        return;
+    }
+    
+    localStorage.setItem('lastUserID', userId);
+    const success = await fetchTeamData(webAppUrl);
+
+    if (success) {
+        initializeApp();
+    } else {
+        loginLoadingMessageDiv.classList.add('hidden');
+    }
+}
+
+// Initializes the main application view
+function initializeApp() {
+    loadingMessageDiv.classList.add('hidden');
+    errorMessageDiv.classList.add('hidden');
+    appContent.innerHTML = ''; 
+
+    document.getElementById('nav-drills').addEventListener('click', renderDrills);
+    document.getElementById('nav-mobility').addEventListener('click', renderMobility);
+    document.getElementById('nav-strength').addEventListener('click', renderStrength);
+    document.getElementById('nav-updates').addEventListener('click', renderUpdates);
+    
+    renderDrills(); // Start with the drills tab
+    mainAppWrapper.classList.remove('hidden');
+    loginContainer.classList.add('hidden');
+}
+
+
+// --- RENDERING FUNCTIONS ---
+
+// Sets the visual style for the active navigation button
+function setActiveNav(activeId) {
+    const navButtons = document.querySelectorAll('.nav-button');
+    navButtons.forEach(btn => {
+        btn.classList.remove('active-drills', 'active-mobility', 'active-strength', 'active-updates', 'active');
+        if (btn.id === activeId) {
+            btn.classList.add('active'); // General active class
+            if (activeId === 'nav-drills') btn.classList.add('active-drills');
+            else if (activeId === 'nav-mobility') btn.classList.add('active-mobility');
+            else if (activeId === 'nav-strength') btn.classList.add('active-strength');
+            else if (activeId === 'nav-updates') btn.classList.add('active-updates');
+        }
+    });
+}
+
+// Renders the Running Drills section
+function renderDrills() {
+    setActiveNav('nav-drills');
+    let contentHtml = `<h2 class="text-2xl font-bold text-emerald-700 mb-4">Running Drills</h2>`;
+    
+    if (!teamData.drills || teamData.drills.length === 0) {
+        contentHtml += `<div class="content-card drills-card"><p>No drills found.</p></div>`;
+    } else {
+        const exerciseGrid = teamData.drills.map(item => `
+            <div class="exercise-card">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-emerald-800 text-lg">${item.name}</h3>
+                    <span class="details details-drills">${item.reps}</span>
+                </div>
+                <p class="text-stone-600 mt-2 mb-4">${item.description}</p>
+                <a href="${item.videoUrl}" class="video-link" target="_blank" rel="noopener noreferrer">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
+                     Watch Video
+                </a>
+            </div>
+        `).join('');
+        contentHtml += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${exerciseGrid}</div>`;
+    }
+    appContent.innerHTML = contentHtml;
+}
+
+// Renders the Mobility Exercises section
+function renderMobility() {
+    setActiveNav('nav-mobility');
+    let contentHtml = `<h2 class="text-2xl font-bold text-sky-700 mb-4">Mobility Exercises</h2>`;
+    
+    if (!teamData.mobility || teamData.mobility.length === 0) {
+        contentHtml += `<div class="content-card mobility-card"><p>No mobility exercises found.</p></div>`;
+    } else {
+        const exerciseGrid = teamData.mobility.map(item => `
+            <div class="exercise-card">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-sky-800 text-lg">${item.name}</h3>
+                    <span class="details details-mobility">${item.duration}</span>
+                </div>
+                <p class="text-stone-600 mt-2 mb-4">${item.description}</p>
+                <a href="${item.videoUrl}" class="video-link" target="_blank" rel="noopener noreferrer">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
+                     Watch Video
+                </a>
+            </div>
+        `).join('');
+        contentHtml += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${exerciseGrid}</div>`;
+    }
+    appContent.innerHTML = contentHtml;
+}
+
+// Renders the Strength Exercises section
+function renderStrength() {
+    setActiveNav('nav-strength');
+    let contentHtml = `<h2 class="text-2xl font-bold text-amber-700 mb-4">Strength Exercises</h2>`;
+    
+    if (!teamData.strength || teamData.strength.length === 0) {
+        contentHtml += `<div class="content-card strength-card"><p>No strength exercises found.</p></div>`;
+    } else {
+        const exerciseGrid = teamData.strength.map(item => `
+            <div class="exercise-card">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-amber-800 text-lg">${item.name}</h3>
+                    <span class="details details-strength">${item.sets} sets of ${item.reps || item.duration}</span>
+                </div>
+                <p class="text-stone-600 mt-2 mb-4">${item.description}</p>
+                <a href="${item.videoUrl}" class="video-link" target="_blank" rel="noopener noreferrer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
+                    Watch Video
+                </a>
+            </div>
+        `).join('');
+        contentHtml += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${exerciseGrid}</div>`;
+    }
+    appContent.innerHTML = contentHtml;
+}
+
+// Renders the Updates section
+function renderUpdates() {
+    setActiveNav('nav-updates');
+    let contentHtml = `<h2 class="text-2xl font-bold text-indigo-700 mb-4">Team Updates</h2>`;
+    
+    if (!teamData.updates || teamData.updates.length === 0) {
+        contentHtml += `<div class="content-card updates-card"><p>No updates found.</p></div>`;
+    } else {
+        const updatesList = teamData.updates.map(item => `
+            <div class="content-card updates-card">
+                <h3 class="text-indigo-800 font-semibold text-xl mb-2">${item.title}</h3>
+                <ul class="list-disc list-inside space-y-1 text-stone-700">
+                    ${item.content.map(line => `<li>${line}</li>`).join('')}
+                </ul>
+            </div>
+        `).join('');
+        contentHtml += `<div class="space-y-4">${updatesList}</div>`;
+    }
+    appContent.innerHTML = contentHtml;
+}
+
+
+// --- EVENT LISTENERS & INITIALIZATION ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Set default text before data loads
+    updateStaticUIText();
+
+    const loginButton = document.getElementById('loginButton');
+    if(loginButton) loginButton.addEventListener('click', handleLogin);
+    
+    const userIdInput = document.getElementById('userIdInput');
+    if(userIdInput) userIdInput.addEventListener('keypress', (event) => { 
+        if (event.key === 'Enter') { 
+            event.preventDefault(); 
+            handleLogin(); 
+        }
+    });
+    
+    // PWA Install Logic
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        if (installPwaButton) installPwaButton.classList.remove('hidden');
+    });
+
+    if (installPwaButton) {
+        installPwaButton.addEventListener('click', async () => {
+            installPwaButton.classList.add('hidden');
+            if (deferredInstallPrompt) {
+                deferredInstallPrompt.prompt();
+                const { outcome } = await deferredInstallPrompt.userChoice;
+                console.log(`User response to install prompt: ${outcome}`);
+                deferredInstallPrompt = null;
+            }
+        });
+    }
+
+    window.addEventListener('appinstalled', () => {
+        if (installPwaButton) installPwaButton.classList.add('hidden');
+        deferredInstallPrompt = null;
+        console.log('PWA was installed');
+    });
+
+    // Auto-fill last used User ID
+    const lastUserId = localStorage.getItem('lastUserID');
+    if (lastUserId) {
+        const userIdInputEl = document.getElementById('userIdInput');
+        if (userIdInputEl) userIdInputEl.value = lastUserId; 
+    }
+    
+    loginContainer.classList.remove('hidden');
+    mainAppWrapper.classList.add('hidden');
+});
+</script>
+</body>
+</html>
